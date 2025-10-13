@@ -7,6 +7,9 @@
 #include <QPushButton>
 #include <QIntValidator>
 #include <QMessageBox>
+#include <random>
+#include <ctime>
+
 
 TaskPage::TaskPage(Map* map, Coordinator* coordinator, QWidget *parent)
     : QWidget(parent), map(map), coordinator(coordinator),

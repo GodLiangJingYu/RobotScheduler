@@ -1,8 +1,25 @@
 #include "PathPlanner.h"
 #include <algorithm>
 #include <cmath>
+#include <queue>
+#include <unordered_map>
+#include <vector>
+#include <algorithm>
+#include <map>
 
 PathPlanner::PathPlanner(Map* map) : map(map) {}
+
+struct PositionHash {
+    std::size_t operator()(const Position& pos) const {
+        return static_cast<std::size_t>(pos.x * 31 + pos.y);
+    }
+};
+
+struct PositionEqual {
+    bool operator()(const Position& lhs, const Position& rhs) const {
+        return lhs.x == rhs.x && lhs.y == rhs.y;
+    }
+};
 
 std::vector<Position> PathPlanner::findPath(const Position& start, const Position& end) {
     if (start == end) return {start};

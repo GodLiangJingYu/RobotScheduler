@@ -23,7 +23,7 @@ MonitorPage::MonitorPage(Map* map, Coordinator* coordinator, int totalTasks, QWi
 
     // Generate tasks periodically
     QTimer* taskGenerator = new QTimer(this);
-    connect(taskGenerator, &QTimer::timeout, [this]() {
+    connect(taskGenerator, &QTimer::timeout, [this, map, coordinator]() {
         if (!simulationComplete && coordinator->getPendingTaskCount() < 10) {
             // Generate random task
             std::random_device rd;

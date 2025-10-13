@@ -1,7 +1,9 @@
 #ifndef DATABASEMANAGER_H
 #define DATABASEMANAGER_H
+#pragma once
 
 #include "../core/Robot.h"
+#include "../core/Task.h"
 #include <sqlite3.h>
 #include <string>
 #include <vector>
@@ -23,6 +25,7 @@ public:
     // Task operations
     bool insertTask(const std::shared_ptr<Task>& task);
     bool updateTaskStatus(int taskId, bool completed);
+    bool updateTask(const std::shared_ptr<Task>& task);
     std::vector<std::shared_ptr<Task>> getAllTasks() const;
 
     // Query operations
@@ -33,6 +36,7 @@ public:
 private:
     sqlite3* db;
     std::string dbPath;
+    mutable std::mutex dbMutex;
 
     bool executeQuery(const std::string& query);
     void createTables();

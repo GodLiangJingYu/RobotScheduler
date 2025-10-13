@@ -1,4 +1,5 @@
 #include "DatabaseManager.h"
+#include "../frontend/MonitorPage.h"
 #include <iostream>
 
 DatabaseManager::DatabaseManager(const std::string& dbPath) : db(nullptr), dbPath(dbPath) {}
