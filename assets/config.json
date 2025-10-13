@@ -1,0 +1,124 @@
+{
+  "system": {
+    "name": "RobotScheduler",
+    "version": "1.0.0",
+    "description": "多机器人自主规划调度系统",
+    "author": "RobotScheduler Team"
+  },
+  "simulation": {
+    "map_size": {
+      "width": 10000,
+      "height": 10000
+    },
+    "block_size": 8,
+    "update_interval_ms": 500,
+    "task_generation_interval_ms": 1000,
+    "max_robots": 3000,
+    "min_robots": 1000,
+    "max_obstacles": 20000,
+    "min_obstacles": 5000,
+    "max_tasks": 15000,
+    "min_tasks": 60
+  },
+  "robot": {
+    "types": [
+      "AGV",
+      "MIR",
+      "HUMANOID",
+      "QUADRUPED"
+    ],
+    "initial_spawn_area": {
+      "center_x": 5000,
+      "center_y": 5000,
+      "radius": 200
+    },
+    "movement_speed": 1,
+    "collision_detection": true,
+    "path_planning": {
+      "algorithm": "A_star",
+      "max_path_length": 5000,
+      "avoidance_radius": 2
+    }
+  },
+  "task": {
+    "assignment": {
+      "strategy": "nearest_idle_robot",
+      "priority": "distance_based",
+      "load_balancing": true
+    },
+    "execution": {
+      "parallel_execution": true,
+      "timeout_seconds": 300,
+      "retry_attempts": 3
+    }
+  },
+  "database": {
+    "type": "sqlite",
+    "connection_string": "robot_scheduler.db",
+    "max_connections": 10,
+    "connection_timeout": 30,
+    "auto_backup": true,
+    "backup_interval_minutes": 60
+  },
+  "ui": {
+    "window": {
+      "main_width": 800,
+      "main_height": 600,
+      "monitor_width": 800,
+      "monitor_height": 900,
+      "task_width": 400,
+      "task_height": 300
+    },
+    "colors": {
+      "background": "#FFFFFF",
+      "obstacle": "#808080",
+      "robot_idle": "#0000FF",
+      "robot_moving_to_task": "#00FF00",
+      "robot_executing": "#FFFF00",
+      "robot_moving_to_end": "#00FFFF",
+      "robot_completed": "#FF0000",
+      "task_start": "#FF0000",
+      "task_end": "#0000FF"
+    },
+    "visualization": {
+      "scale_factor": 0.05,
+      "robot_size": 4,
+      "obstacle_size": 2,
+      "show_paths": false,
+      "show_robot_ids": false,
+      "refresh_rate": 2
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "robot_scheduler.log",
+    "max_file_size_mb": 100,
+    "max_backup_files": 5,
+    "console_output": true
+  },
+  "performance": {
+    "thread_pool_size": 8,
+    "max_concurrent_operations": 100,
+    "memory_limit_mb": 2048,
+    "cpu_usage_limit": 80
+  },
+  "safety": {
+    "collision_avoidance": true,
+    "emergency_stop": true,
+    "max_speed_limit": 5,
+    "safe_distance": 3
+  },
+  "network": {
+    "enabled": false,
+    "port": 8080,
+    "max_connections": 100,
+    "timeout_seconds": 30
+  },
+  "advanced": {
+    "path_smoothing": true,
+    "dynamic_replanning": true,
+    "multi_objective_optimization": true,
+    "machine_learning_enabled": false,
+    "predictive_analytics": false
+  }
+}
