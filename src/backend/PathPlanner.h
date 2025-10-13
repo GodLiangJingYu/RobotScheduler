@@ -33,8 +33,9 @@ private:
 
     int heuristic(const Position& a, const Position& b) const;
     std::vector<Position> getNeighbors(const Position& pos) const;
-    std::vector<Position> reconstructPath(const std::unordered_map<Position, Position>& cameFrom,
-                                        const Position& start, const Position& end);
+    template<typename MapType>
+    std::vector<Position> reconstructPath(const MapType& cameFrom,
+                                    const Position& start, const Position& end);
 };
 
 #endif // PATHPLANNER_H

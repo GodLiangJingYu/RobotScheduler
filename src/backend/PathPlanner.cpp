@@ -118,9 +118,9 @@ std::vector<Position> PathPlanner::getNeighbors(const Position& pos) const {
     return neighbors;
 }
 
-std::vector<Position> PathPlanner::reconstructPath(const std::unordered_map<Position, Position>& cameFrom,
-                                                 const Position& start,
-                                                 const Position& end) {
+template<typename MapType>
+std::vector<Position> PathPlanner::reconstructPath(const MapType& cameFrom,
+                                                const Position& start, const Position& end) {
     std::vector<Position> path;
     Position current = end;
 
