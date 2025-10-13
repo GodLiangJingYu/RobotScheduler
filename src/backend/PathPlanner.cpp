@@ -26,7 +26,7 @@ std::vector<Position> PathPlanner::findPath(const Position& start, const Positio
 
     std::priority_queue<Node, std::vector<Node>, std::greater<Node>> openSet;
     std::unordered_map<int, int> closedSet; // pos hash -> g cost
-    std::unordered_map<Position, Position> cameFrom;
+    std::map<Position, Position> cameFrom;
 
     openSet.push(Node(start, 0, heuristic(start, end)));
 
@@ -63,7 +63,7 @@ std::vector<Position> PathPlanner::findPathAvoidingRobots(const Position& start,
 
     std::priority_queue<Node, std::vector<Node>, std::greater<Node>> openSet;
     std::unordered_map<int, int> closedSet;
-    std::unordered_map<Position, Position> cameFrom;
+    std::map<Position, Position> cameFrom;
 
     openSet.push(Node(start, 0, heuristic(start, end)));
 
