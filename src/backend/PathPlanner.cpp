@@ -28,14 +28,12 @@ struct PositionCompare {
     }
 };
 
-std::map<Position, Position, PositionCompare> cameFrom;
-
 std::vector<Position> PathPlanner::findPath(const Position& start, const Position& end) {
     if (start == end) return {start};
 
     std::priority_queue<Node, std::vector<Node>, std::greater<Node>> openSet;
     std::unordered_map<int, int> closedSet; // pos hash -> g cost
-    std::map<Position, Position> cameFrom;
+    std::map<Position, Position, PositionCompare> cameFrom;
 
     openSet.push(Node(start, 0, heuristic(start, end)));
 
