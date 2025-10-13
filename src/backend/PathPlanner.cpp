@@ -21,6 +21,15 @@ struct PositionEqual {
     }
 };
 
+struct PositionCompare {
+    bool operator()(const Position& a, const Position& b) const {
+        if (a.x != b.x) return a.x < b.x;
+        return a.y < b.y;
+    }
+};
+
+std::map<Position, Position, PositionCompare> cameFrom;
+
 std::vector<Position> PathPlanner::findPath(const Position& start, const Position& end) {
     if (start == end) return {start};
 

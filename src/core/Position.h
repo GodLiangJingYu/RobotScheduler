@@ -8,13 +8,18 @@ public:
 
     // 确保这些函数存在且不是被删除的
     Position(int x = 0, int y = 0) : x(x), y(y) {}
-    Position(const Position&) = default;  // 复制构造函数
+    Position(const Position&) = default;
     ~Position() = default;  // 析构函数
 
-    // 确保相等运算符存在（unordered_map 需要）
     bool operator==(const Position& other) const {
         return x == other.x && y == other.y;
     }
+
+    bool operator!=(const Position& other) const {
+        return !(*this == other);
+    }
+
+    // 添加在这里
     bool operator<(const Position& other) const {
         if (x != other.x) return x < other.x;
         return y < other.y;
