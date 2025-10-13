@@ -84,7 +84,7 @@ bool DatabaseManager::updateRobotPosition(int robotId, const Position& pos) {
 }
 
 bool DatabaseManager::insertTask(const std::shared_ptr<Task>& task) {
-    auto timePoint = std::chrono::system_clock::to_time_t(task->createdTime);
+    auto timePoint = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     std::string timeStr = std::to_string(timePoint);
 
     std::string query = "INSERT INTO tasks (id, start_x, start_y, end_x, end_y, created_time) VALUES (" +

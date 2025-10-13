@@ -4,12 +4,14 @@
 
 class Position {
 public:
-    int x, y;
+    int x, y;  // 或其他类型的坐标
 
-    Position() : x(0), y(0) {}
-    Position(int x, int y) : x(x), y(y) {}
+    // 确保这些函数存在且不是被删除的
+    Position(int x = 0, int y = 0) : x(x), y(y) {}
+    Position(const Position&) = default;  // 复制构造函数
+    ~Position() = default;  // 析构函数
 
-    // 添加相等运算符
+    // 确保相等运算符存在（unordered_map 需要）
     bool operator==(const Position& other) const {
         return x == other.x && y == other.y;
     }
@@ -19,9 +21,11 @@ public:
 namespace std {
     template <>
     struct hash<Position> {
-        std::size_t operator()(const Position& pos) const {
-            // 简单的哈希函数，将x和y组合
-            return static_cast<std::size_t>(pos.x * 31 + pos.y);
+        std::size_t operator()(const Position& p) const {
+            // 组合 x 和 y 的哈希值
+            std::size_t h1 = std::hash<int>{}(p.x);
+            std::size_t h2 = std::hash<int>{}(p.y);
+            return h1 ^ (h2 << 1); // 或使用其他方式组合哈希值
         }
     };
 }
