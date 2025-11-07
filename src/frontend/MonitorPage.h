@@ -5,6 +5,9 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QTimer>
+#include <QProgressBar>
+#include <QSlider>
+#include <QGridLayout>
 #include "../backend/Coordinator.h"
 
 class MonitorPage : public QWidget {
@@ -20,12 +23,16 @@ protected:
 private slots:
     void updateDisplay();
     void onExitClicked();
+    void onPauseResumeClicked();
+    void onSpeedChanged(int value);
 
 private:
     void setupUI();
     void drawMap(QPainter& painter);
     void drawRobots(QPainter& painter);
     void drawTasks(QPainter& painter);
+    void drawGrid(QPainter& painter);
+    void drawLegend(QPainter& painter);
     void checkSimulationComplete();
 
     Map* map;
@@ -35,15 +42,25 @@ private:
 
     QTimer* updateTimer;
     QPushButton* exitButton;
+    QPushButton* pauseResumeButton;
     QLabel* statusLabel;
+    QLabel* robotCountLabel;
+    QLabel* pendingTaskLabel;
+    QLabel* completedTaskLabel;
+    QLabel* speedLabel;
+    QProgressBar* progressBar;
+    QSlider* speedSlider;
 
-    // Scaling factors for visualization
     static constexpr double SCALE_FACTOR = 0.05;
-    static constexpr int WINDOW_SIZE = 800;
-    static constexpr int ROBOT_SIZE = 10;
-    static constexpr int OBSTACLE_SIZE = 3;
+    static constexpr int WINDOW_SIZE = 900;
+    static constexpr int ROBOT_SIZE = 12;
+    static constexpr int OBSTACLE_SIZE = 2;
+    static constexpr int INFO_PANEL_HEIGHT = 120;
+    static constexpr int CONTROL_PANEL_HEIGHT = 60;
 
     bool simulationComplete;
+    bool isPaused;
+    int updateInterval;
 };
 
 #endif // MONITORPAGE_H
