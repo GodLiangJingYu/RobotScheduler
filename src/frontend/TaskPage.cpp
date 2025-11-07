@@ -70,7 +70,7 @@ void TaskPage::onStartTaskClicked() {
         taskCount < 60 || taskCount > 15000) {
         QMessageBox::warning(this, "输入错误", "参数超出范围");
         return;
-    }
+        }
 
     // 生成障碍物
     map->generateRandomObstacles(obstacleCount);
@@ -78,7 +78,7 @@ void TaskPage::onStartTaskClicked() {
     // 生成机器人
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(-100, 100);
+    std::uniform_int_distribution<> dis(-2500, 2500);  // Changed from (-100, 100) to (-2500, 2500)
 
     for (int i = 0; i < robotCount; ++i) {
         Position center(Map::MAP_SIZE/2, Map::MAP_SIZE/2);

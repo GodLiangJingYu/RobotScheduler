@@ -2,13 +2,9 @@
 #define MONITORPAGE_H
 
 #include <QWidget>
-#include <QTimer>
-#include <QPainter>
-#include <QPaintEvent>
 #include <QPushButton>
-#include <QVBoxLayout>
 #include <QLabel>
-#include <QMessageBox>
+#include <QTimer>
 #include "../backend/Coordinator.h"
 
 class MonitorPage : public QWidget {
@@ -42,10 +38,10 @@ private:
     QLabel* statusLabel;
 
     // Scaling factors for visualization
-    static constexpr double SCALE_FACTOR = 0.05; // Scale 10000x10000 to fit in window
-    static constexpr int WINDOW_SIZE = 800; // Display window size
-    static constexpr int ROBOT_SIZE = 4;
-    static constexpr int OBSTACLE_SIZE = 2;
+    static constexpr double SCALE_FACTOR = 0.05;
+    static constexpr int WINDOW_SIZE = 800;
+    static constexpr int ROBOT_SIZE = 10;
+    static constexpr int OBSTACLE_SIZE = 3;
 
     bool simulationComplete;
 };

@@ -34,7 +34,6 @@ struct Position {
         return !(*this == other);
     }
 
-    // 添加这个运算符（用于 std::map 等容器）
     bool operator<(const Position& other) const {
         if (x != other.x) {
             return x < other.x;
@@ -60,7 +59,7 @@ public:
     void setPosition(const Position& pos) { position = pos; }
     void setState(RobotState newState) { state = newState; }
     void setTarget(const Position& target) { this->target = target; }
-    void setPath(const std::vector<Position>& newPath) { path = newPath; }
+    void setPath(const std::vector<Position>& newPath);
     void setCurrentTaskId(int taskId) { currentTaskId = taskId; }
 
     // Task management
@@ -76,15 +75,20 @@ public:
     static std::string typeToString(RobotType type);
 
 private:
+    std::vector<Position> interpolatePath(const std::vector<Position>& waypoints);
+
     int id;
     RobotType type;
     Position position;
     RobotState state;
     Position target;
     std::vector<Position> path;
+    std::vector<Position> originalPath;
     int currentTaskId;
     int pathIndex;
     mutable std::mutex mutex;
+
+    static constexpr int STEP_SIZE = 10;
 };
 
 #endif // ROBOT_H
