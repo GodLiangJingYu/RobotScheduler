@@ -180,11 +180,22 @@ void MonitorPage::drawGrid(QPainter& painter) {
 }
 
 void MonitorPage::drawMap(QPainter& painter) {
-    auto obstacles = map->getObstacles();
+    static std::vector<Position> cachedObstacles;
+    static bool obstaclesCached = false;
+
+    if (!obstaclesCached) {
+        auto allObstacles = map->getObstacles();
+        int sampleRate = allObstacles.size() > 10000 ? 2 : 1;
+        for (size_t i = 0; i < allObstacles.size(); i += sampleRate) {
+            cachedObstacles.push_back(allObstacles[i]);
+        }
+        obstaclesCached = true;
+    }
+
     painter.setPen(Qt::NoPen);
     painter.setBrush(QColor(80, 80, 80));
 
-    for (const auto& obstacle : obstacles) {
+    for (const auto& obstacle : cachedObstacles) {
         int x = obstacle.x * SCALE_FACTOR;
         int y = obstacle.y * SCALE_FACTOR;
         painter.drawRect(x, y, OBSTACLE_SIZE, OBSTACLE_SIZE);
@@ -202,17 +213,20 @@ void MonitorPage::drawRobots(QPainter& painter) {
         auto robot = coordinator->getRobot(robotId);
         if (!robot) continue;
 
-        auto path = robot->getPath();
-        if (!path.empty() && path.size() > 1) {
-            painter.setPen(QPen(QColor(150, 150, 150, 100), 1, Qt::DashLine));
-            for (size_t i = 1; i < std::min(path.size(), size_t(50)); ++i) {
-                int x1 = path[i-1].x * SCALE_FACTOR;
-                int y1 = path[i-1].y * SCALE_FACTOR;
-                int x2 = path[i].x * SCALE_FACTOR;
-                int y2 = path[i].y * SCALE_FACTOR;
-                painter.drawLine(x1, y1, x2, y2);
+        if (robotId % 10 == 0) {
+            auto path = robot->getPath();
+            if (!path.empty() && path.size() > 1) {
+                painter.setPen(QPen(QColor(150, 150, 150, 100), 1, Qt::DashLine));
+                size_t maxPath = std::min(path.size(), size_t(20));
+                for (size_t i = 1; i < maxPath; ++i) {
+                    int x1 = path[i-1].x * SCALE_FACTOR;
+                    int y1 = path[i-1].y * SCALE_FACTOR;
+                    int x2 = path[i].x * SCALE_FACTOR;
+                    int y2 = path[i].y * SCALE_FACTOR;
+                    painter.drawLine(x1, y1, x2, y2);
+                }
+                painter.setPen(Qt::NoPen);
             }
-            painter.setPen(Qt::NoPen);
         }
 
         QColor robotColor;
@@ -239,10 +253,6 @@ void MonitorPage::drawRobots(QPainter& painter) {
         int y = pos.y * SCALE_FACTOR;
 
         painter.drawEllipse(QPointF(x, y), ROBOT_SIZE/2.0, ROBOT_SIZE/2.0);
-
-        painter.setPen(QPen(Qt::white, 1));
-        painter.drawEllipse(QPointF(x, y), ROBOT_SIZE/2.0 - 2, ROBOT_SIZE/2.0 - 2);
-        painter.setPen(Qt::NoPen);
     }
 }
 

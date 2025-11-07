@@ -53,8 +53,8 @@ private:
 
     static constexpr double SCALE_FACTOR = 0.05;
     static constexpr int WINDOW_SIZE = 900;
-    static constexpr int ROBOT_SIZE = 12;
-    static constexpr int OBSTACLE_SIZE = 2;
+    static constexpr int ROBOT_SIZE = 6;
+    static constexpr int OBSTACLE_SIZE = 6;
     static constexpr int INFO_PANEL_HEIGHT = 120;
     static constexpr int CONTROL_PANEL_HEIGHT = 60;
 

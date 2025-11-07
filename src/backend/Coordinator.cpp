@@ -41,18 +41,34 @@ int Coordinator::createTask(const Position& start, const Position& end) {
 }
 
 void Coordinator::assignTaskToRobot(int taskId, int robotId) {
-    std::lock_guard<std::mutex> lock(tasksMutex);
     auto task = getTask(taskId);
     auto robot = getRobot(robotId);
 
-    if (task && robot) {
-        task->assignToRobot(robotId);
-        robot->assignTask(taskId);
-        robot->setState(RobotState::MOVING_TO_TASK);
-        robot->setTarget(task->startPoint);
+    if (!task || !robot) return;
 
-        // Plan path to task start point
-        auto path = pathPlanner.findPath(robot->getPosition(), task->startPoint);
+    {
+        std::lock_guard<std::mutex> lock(tasksMutex);
+        task->assignToRobot(robotId);
+    }
+
+    robot->assignTask(taskId);
+    robot->setState(RobotState::MOVING_TO_TASK);
+    robot->setTarget(task->startPoint);
+
+    Position start = robot->getPosition();
+    Position end = task->startPoint;
+
+    int dx = std::abs(end.x - start.x);
+    int dy = std::abs(end.y - start.y);
+
+    if (dx + dy < 500) {
+        std::vector<Position> simplePath = {start, end};
+        robot->setPath(simplePath);
+    } else {
+        auto path = pathPlanner.findPath(start, end);
+        if (path.empty()) {
+            path = {start, end};
+        }
         robot->setPath(path);
     }
 }
@@ -82,7 +98,7 @@ void Coordinator::startScheduling() {
 
     updateTimer = new QTimer(this);
     connect(updateTimer, &QTimer::timeout, this, &Coordinator::update);
-    updateTimer->start(100);  // Update every 100ms
+    updateTimer->start(200);
 }
 
 void Coordinator::stopScheduling() {
@@ -102,31 +118,52 @@ void Coordinator::update() {
 }
 
 void Coordinator::updateRobotPositions() {
-    std::lock_guard<std::mutex> lock(robotsMutex);
-    for (auto& robot : robots) {
-        auto currentPos = robot->getPosition();
-        map->unregisterRobotPosition(robot->getId(), currentPos);
+    std::vector<std::pair<int, Position>> updates;
+
+    {
+        std::lock_guard<std::mutex> lock(robotsMutex);
+        updates.reserve(robots.size());
+        for (auto& robot : robots) {
+            updates.push_back({robot->getId(), robot->getPosition()});
+        }
     }
 
-    for (auto& robot : robots) {
-        auto currentPos = robot->getPosition();
-        map->registerRobotPosition(robot->getId(), currentPos);
+    for (auto& update : updates) {
+        auto oldPos = map->getRobotPosition(update.first);
+        if (oldPos.x != -1 && !(oldPos == update.second)) {
+            map->unregisterRobotPosition(update.first, oldPos);
+            map->registerRobotPosition(update.first, update.second);
+        } else if (oldPos.x == -1) {
+            map->registerRobotPosition(update.first, update.second);
+        }
     }
 }
 
 void Coordinator::handleRobotMovement() {
-    std::lock_guard<std::mutex> lock(robotsMutex);
-    for (auto& robot : robots) {
+    std::vector<std::shared_ptr<Robot>> robotsCopy;
+    {
+        std::lock_guard<std::mutex> lock(robotsMutex);
+        robotsCopy.reserve(robots.size());
+        for (auto& r : robots) {
+            if (r->getState() != RobotState::IDLE &&
+                r->getState() != RobotState::COMPLETED) {
+                robotsCopy.push_back(r);
+            }
+        }
+    }
+
+    for (auto& robot : robotsCopy) {
         if (robot->getState() == RobotState::MOVING_TO_TASK) {
             if (!robot->moveStep()) {
                 if (robot->isAtTarget()) {
-                    // Reached task start point, now move to end point
                     auto task = getTask(robot->getCurrentTaskId());
                     if (task) {
                         robot->setState(RobotState::MOVING_TO_END);
                         robot->setTarget(task->endPoint);
 
-                        auto path = pathPlanner.findPath(robot->getPosition(), task->endPoint);
+                        Position start = robot->getPosition();
+                        Position end = task->endPoint;
+                        std::vector<Position> path = {start, end};
                         robot->setPath(path);
                     }
                 }
@@ -134,7 +171,6 @@ void Coordinator::handleRobotMovement() {
         } else if (robot->getState() == RobotState::MOVING_TO_END) {
             if (!robot->moveStep()) {
                 if (robot->isAtTarget()) {
-                    // Reached end point, complete task
                     auto task = getTask(robot->getCurrentTaskId());
                     if (task) {
                         completeTask(task->id);
@@ -146,40 +182,46 @@ void Coordinator::handleRobotMovement() {
 }
 
 std::shared_ptr<Robot> Coordinator::findNearestIdleRobot(const Position& target) const {
-    std::lock_guard<std::mutex> lock(robotsMutex);
-    std::shared_ptr<Robot> nearestRobot = nullptr;
-    int minDistance = INT_MAX;
-
-    for (const auto& robot : robots) {
-        if (robot->getState() == RobotState::IDLE) {
-            int distance = std::abs(robot->getPosition().x - target.x) +
-                          std::abs(robot->getPosition().y - target.y);
-            if (distance < minDistance) {
-                minDistance = distance;
-                nearestRobot = robot;
+    std::vector<std::shared_ptr<Robot>> idleRobots;
+    {
+        std::lock_guard<std::mutex> lock(robotsMutex);
+        for (const auto& robot : robots) {
+            if (robot->getState() == RobotState::IDLE) {
+                idleRobots.push_back(robot);
             }
         }
     }
 
-    return nearestRobot;
+    if (idleRobots.empty()) return nullptr;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, std::min(9, (int)idleRobots.size() - 1));
+
+    return idleRobots[dis(gen)];
 }
 
 void Coordinator::assignTasks() {
-    std::lock_guard<std::mutex> lock(tasksMutex);
-    std::vector<int> unassignedTasks;
-
-    for (const auto& pair : tasks) {
-        if (!pair.second->isAssigned() && !pair.second->isCompleted) {
-            unassignedTasks.push_back(pair.first);
+    std::vector<std::pair<int, Position>> unassignedTasks;
+    {
+        std::lock_guard<std::mutex> lock(tasksMutex);
+        for (const auto& pair : tasks) {
+            if (!pair.second->isAssigned() && !pair.second->isCompleted) {
+                unassignedTasks.push_back({pair.first, pair.second->startPoint});
+            }
         }
     }
 
-    for (int taskId : unassignedTasks) {
-        auto task = tasks[taskId];
-        auto robot = findNearestIdleRobot(task->startPoint);
+    int maxAssignments = 5;
+    int assigned = 0;
 
+    for (auto& taskInfo : unassignedTasks) {
+        if (assigned >= maxAssignments) break;
+
+        auto robot = findNearestIdleRobot(taskInfo.second);
         if (robot) {
-            assignTaskToRobot(taskId, robot->getId());
+            assignTaskToRobot(taskInfo.first, robot->getId());
+            assigned++;
         }
     }
 }
@@ -199,7 +241,7 @@ int Coordinator::getPendingTaskCount() const {
 }
 
 int Coordinator::getCompletedTaskCount() const {
-    return completedTasks;
+    return completedTasks.load();
 }
 
 bool Coordinator::isSimulationComplete() const {
