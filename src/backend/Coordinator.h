@@ -8,13 +8,15 @@
 #include <vector>
 #include <unordered_map>
 #include <mutex>
-#include <thread>
 #include <atomic>
-#include <condition_variable>
+#include <QObject>
+#include <QTimer>
 
-class Coordinator {
+class Coordinator : public QObject {
+    Q_OBJECT
+
 public:
-    Coordinator(Map* map);
+    explicit Coordinator(Map* map, QObject* parent = nullptr);
     ~Coordinator();
 
     // Robot management
@@ -54,14 +56,12 @@ private:
     mutable std::mutex tasksMutex;
 
     std::atomic<bool> running;
-    std::thread schedulerThread;
-    std::condition_variable cv;
+    QTimer* updateTimer;
 
     std::atomic<int> nextTaskId;
     int completedTasks;
 
     // Internal methods
-    void schedulerLoop();
     std::shared_ptr<Robot> findNearestIdleRobot(const Position& target) const;
     void updateRobotPositions();
     void handleRobotMovement();

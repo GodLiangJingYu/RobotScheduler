@@ -25,11 +25,21 @@ enum class RobotState {
 struct Position {
     int x, y;
     Position(int x = 0, int y = 0) : x(x), y(y) {}
+
     bool operator==(const Position& other) const {
         return x == other.x && y == other.y;
     }
+
     bool operator!=(const Position& other) const {
         return !(*this == other);
+    }
+
+    // 添加这个运算符（用于 std::map 等容器）
+    bool operator<(const Position& other) const {
+        if (x != other.x) {
+            return x < other.x;
+        }
+        return y < other.y;
     }
 };
 

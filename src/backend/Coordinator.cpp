@@ -2,9 +2,11 @@
 #include <algorithm>
 #include <random>
 #include <cmath>
+#include <climits>
 
-Coordinator::Coordinator(Map* map)
-    : map(map), pathPlanner(map), running(false), nextTaskId(0), completedTasks(0) {}
+Coordinator::Coordinator(Map* map, QObject* parent)
+    : QObject(parent), map(map), pathPlanner(map), running(false),
+      updateTimer(nullptr), nextTaskId(0), completedTasks(0) {}
 
 Coordinator::~Coordinator() {
     stopScheduling();
@@ -78,24 +80,18 @@ std::shared_ptr<Task> Coordinator::getTask(int taskId) const {
 void Coordinator::startScheduling() {
     if (running.exchange(true)) return;
 
-    schedulerThread = std::thread(&Coordinator::schedulerLoop, this);
+    updateTimer = new QTimer(this);
+    connect(updateTimer, &QTimer::timeout, this, &Coordinator::update);
+    updateTimer->start(100);  // Update every 100ms
 }
 
 void Coordinator::stopScheduling() {
     if (!running.exchange(false)) return;
 
-    cv.notify_all();
-    if (schedulerThread.joinable()) {
-        schedulerThread.join();
-    }
-}
-
-void Coordinator::schedulerLoop() {
-    while (running) {
-        update();
-
-        std::unique_lock<std::mutex> lock(robotsMutex);
-        cv.wait_for(lock, std::chrono::milliseconds(100), [this]() { return !running; });
+    if (updateTimer) {
+        updateTimer->stop();
+        updateTimer->deleteLater();
+        updateTimer = nullptr;
     }
 }
 

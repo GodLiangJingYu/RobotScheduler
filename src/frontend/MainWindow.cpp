@@ -31,7 +31,8 @@ void MainWindow::setupUI() {
 }
 
 void MainWindow::onBeginScheduleClicked() {
-    TaskPage* taskPage = new TaskPage(map.get(), coordinator.get(), this);
+    TaskPage* taskPage = new TaskPage(map.get(), coordinator.get(), nullptr);  // 改为 nullptr
+    taskPage->setAttribute(Qt::WA_DeleteOnClose);  // 关闭时自动删除
     taskPage->show();
-    this->hide();
+    this->close();  // 关闭主窗口而不是隐藏
 }

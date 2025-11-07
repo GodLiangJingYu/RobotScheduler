@@ -90,7 +90,11 @@ void TaskPage::onStartTaskClicked() {
     }
 
     // 创建监控页面
-    MonitorPage* monitorPage = new MonitorPage(map, coordinator, taskCount, this);
+    MonitorPage* monitorPage = new MonitorPage(map, coordinator, taskCount, nullptr);
+    monitorPage->setAttribute(Qt::WA_DeleteOnClose);
     monitorPage->show();
-    this->close();
+
+    QTimer::singleShot(100, this, [this]() {
+        this->close();
+    });
 }

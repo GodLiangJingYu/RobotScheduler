@@ -1,3 +1,4 @@
+set(CMAKE_PREFIX_PATH "D:/msys64/ucrt64")
 cmake_minimum_required(VERSION 3.20)
 project(RobotScheduler)
 
