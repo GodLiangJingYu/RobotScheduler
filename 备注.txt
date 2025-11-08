@@ -1,0 +1,10 @@
+运行的时候会出现死锁，是因为嵌套锁调用和线程并发，实际应该不会有这种情况（不清楚，有待研究）
+运行环境：
+win11- MSYS2-ucrt64-MinGW
+UBUNTU
+CMake	>= 3.20
+C++17	
+Qt5	5.x	
+SQLite3	3.x	
+PkgConfig	
+标准库线程支持	C++11+
